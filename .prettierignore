@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+build
+public
+.env*
+!.env.example
+
+prisma/schema.prisma
