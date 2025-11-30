@@ -1,108 +1,115 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Logo } from "@/components/common/Logo";
 
-export default function Home() {
+export default function LandingPage() {
   return (
-    <div className="flex h-screen flex-col bg-zinc-50 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-sans">
+    <div className="flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-100 font-sans selection:bg-blue-100 dark:selection:bg-blue-900">
       {/* Header */}
-      <header className="flex h-14 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-4">
+      <header className="flex h-16 items-center justify-between px-6 lg:px-12 border-b border-zinc-100 dark:border-zinc-900/50 backdrop-blur-sm sticky top-0 z-50 bg-white/80 dark:bg-black/80">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded bg-blue-600"></div>
-          <span className="text-lg font-bold">JSON to TS</span>
+          <Logo className="h-8 w-8" />
+          <span className="text-xl font-bold tracking-tight">TypedLoom</span>
         </div>
+        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+          <a href="#features" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Features</a>
+          <a href="#pricing" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Pricing</a>
+          <a href="https://github.com/nomore12/TypedLoom" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">GitHub</a>
+        </nav>
         <div className="flex items-center gap-4">
-          <div className="flex rounded-md bg-zinc-100 dark:bg-zinc-800 p-1">
-            <button className="rounded px-3 py-1 text-sm font-medium bg-white dark:bg-zinc-700 shadow-sm">Free</button>
-            <button className="rounded px-3 py-1 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100">Basic</button>
-          </div>
-          <button className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">Login</button>
+          <Link href="/login" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
+            Login
+          </Link>
+          <Link
+            href="/editor"
+            className="rounded-full bg-zinc-900 dark:bg-white px-5 py-2 text-sm font-semibold text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all active:scale-95"
+          >
+            Open Editor
+          </Link>
         </div>
       </header>
 
-      {/* Main Content - 3 Column Layout */}
-      <main className="flex flex-1 overflow-hidden">
-        {/* Left: Source (JSON Editor) */}
-        <section className="flex w-1/3 min-w-[300px] flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-          <div className="flex h-10 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-4 bg-zinc-50 dark:bg-zinc-900">
-            <span className="text-sm font-semibold text-zinc-500">JSON Input</span>
-            <div className="flex gap-2">
-               <button className="text-xs px-2 py-1 rounded bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700">Format</button>
-               <button className="text-xs px-2 py-1 rounded bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700">Paste</button>
-            </div>
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+          <div className="absolute inset-0 -z-10">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-950/20 dark:to-transparent opacity-60 blur-3xl rounded-full pointer-events-none" />
           </div>
-          <div className="flex-1 p-4 bg-zinc-50/50 dark:bg-zinc-900/50">
-             <div className="h-full w-full rounded border border-dashed border-zinc-300 dark:border-zinc-700 flex items-center justify-center text-zinc-400">
-                JSON Editor Placeholder
-             </div>
+          
+          <div className="container mx-auto px-6 text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 px-3 py-1 text-sm text-zinc-600 dark:text-zinc-400 mb-8 backdrop-blur-sm">
+              <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+              v1.0 Public Beta is live
+            </div>
+            
+            <h1 className="text-5xl lg:text-7xl font-bold tracking-tight mb-8 bg-clip-text text-transparent bg-gradient-to-b from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">
+              Weave JSON into <br className="hidden md:block" />
+              <span className="text-blue-600 dark:text-blue-400">Type-Safe Code</span>
+            </h1>
+            
+            <p className="text-lg lg:text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto mb-12 leading-relaxed">
+              Stop manually writing interfaces. TypedLoom instantly converts your JSON into TypeScript, Zod schemas, and TanStack Query hooks with a powerful interactive editor.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                href="/editor"
+                className="h-12 px-8 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-semibold flex items-center gap-2 transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 active:scale-95"
+              >
+                Start Weaving Free
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+              </Link>
+              <Link
+                href="#demo"
+                className="h-12 px-8 rounded-full border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-semibold flex items-center gap-2 transition-all"
+              >
+                View Demo
+              </Link>
+            </div>
           </div>
         </section>
 
-        {/* Center: Tweak (Tree View) */}
-        <section className="flex w-1/3 min-w-[300px] flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-          <div className="flex h-10 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-4 bg-zinc-50 dark:bg-zinc-900">
-            <span className="text-sm font-semibold text-zinc-500">Interactive Tree</span>
-            <div className="flex gap-2">
-               <button className="text-xs px-2 py-1 rounded bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700">Expand All</button>
+        {/* Feature Grid */}
+        <section id="features" className="py-24 bg-zinc-50 dark:bg-zinc-900/50 border-t border-zinc-200 dark:border-zinc-800">
+          <div className="container mx-auto px-6">
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                {
+                  title: "Interactive Tweak",
+                  desc: "Don't just convert. Fine-tune your types with our tree-view editor. Toggle optionals and rename fields instantly.",
+                  icon: "✨"
+                },
+                {
+                  title: "Client-Side Secure",
+                  desc: "Your data never leaves your browser. We process everything locally for maximum security and zero latency.",
+                  icon: "🔒"
+                },
+                {
+                  title: "Full Stack Ready",
+                  desc: "Generate Zod schemas, TanStack Query hooks, and React Hook Form boilerplate in one click.",
+                  icon: "⚡"
+                }
+              ].map((feature, i) => (
+                <div key={i} className="p-8 rounded-2xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 hover:border-blue-500/50 transition-colors group">
+                  <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{feature.icon}</div>
+                  <h3 className="text-xl font-bold mb-3 text-zinc-900 dark:text-zinc-100">{feature.title}</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">{feature.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="flex-1 p-4 overflow-y-auto">
-             <div className="space-y-2">
-                {/* Mock Tree Items */}
-                <div className="flex items-center gap-2 p-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-900">
-                   <span className="text-zinc-400">▼</span>
-                   <span className="font-mono text-sm text-blue-600 dark:text-blue-400">root</span>
-                </div>
-                <div className="pl-6 flex items-center gap-2 p-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-900">
-                   <input type="checkbox" checked className="rounded border-zinc-300" readOnly />
-                   <span className="font-mono text-sm">user</span>
-                   <button className="ml-auto text-xs px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500">Aa</button>
-                </div>
-                <div className="pl-12 flex items-center gap-2 p-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-900">
-                   <input type="checkbox" checked className="rounded border-zinc-300" readOnly />
-                   <span className="font-mono text-sm">id</span>
-                   <span className="text-xs text-zinc-400 ml-2">number</span>
-                   <button className="ml-auto text-xs px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500">Aa</button>
-                </div>
-                <div className="pl-12 flex items-center gap-2 p-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-900 opacity-60">
-                   <input type="checkbox" className="rounded border-zinc-300" readOnly />
-                   <span className="font-mono text-sm line-through decoration-zinc-400">deleted_at</span>
-                   <span className="text-xs text-zinc-400 ml-2">string?</span>
-                   <button className="ml-auto text-xs px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500">Aa</button>
-                </div>
-             </div>
-          </div>
-        </section>
-
-        {/* Right: Output (Tabs) */}
-        <section className="flex w-1/3 min-w-[300px] flex-col bg-zinc-50 dark:bg-zinc-900">
-           <div className="flex h-10 items-center border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-2">
-              <button className="h-full px-4 text-sm font-medium border-b-2 border-blue-600 text-blue-600 dark:text-blue-400">TypeScript</button>
-              <button className="h-full px-4 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300">Zod</button>
-              <button className="h-full px-4 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300">Query</button>
-              <button className="h-full px-4 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300">Form</button>
-           </div>
-           <div className="flex-1 p-4">
-              <div className="h-full w-full rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-4 font-mono text-sm text-zinc-600 dark:text-zinc-300 shadow-sm">
-                 <pre>{`export interface Root {
-  user: {
-    id: number;
-    name?: string;
-  }
-}`}</pre>
-              </div>
-           </div>
         </section>
       </main>
 
-      {/* Footer: History */}
-      <footer className="h-12 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex items-center px-4 justify-between">
-         <div className="flex items-center gap-4 overflow-x-auto">
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">History</span>
-            <button className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800">User API v1</button>
-            <button className="text-xs px-2 py-1 rounded bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 hover:bg-zinc-200">Payment Response</button>
-         </div>
-         <div className="text-xs text-zinc-400">
-            Client-side processing • Secure
-         </div>
+      <footer className="py-12 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black">
+        <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 rounded bg-zinc-200 dark:bg-zinc-800"></div>
+            <span className="font-semibold text-zinc-900 dark:text-zinc-100">TypedLoom</span>
+          </div>
+          <p className="text-sm text-zinc-500">
+            © 2025 TypedLoom. All rights reserved.
+          </p>
+        </div>
       </footer>
     </div>
   );
