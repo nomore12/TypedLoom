@@ -33,7 +33,7 @@ export function OutputSection({ tsOutput, rootNode }: OutputSectionProps) {
       typescript: generateTypeScript(rootNode),
       zod: `import { z } from "zod";\n\nexport const rootSchema = ${generateZodSchema(rootNode)};`,
       query: generateReactQueryHook("Root"),
-      form: generateReactHookForm("Root"),
+      form: generateReactHookForm(rootNode, "Root"),
     };
   }, [rootNode]);
 

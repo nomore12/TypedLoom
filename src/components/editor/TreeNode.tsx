@@ -9,9 +9,10 @@ interface TreeNodeProps {
   level?: number;
   onToggleOptional: (id: string) => void;
   onRename: (id: string, newName: string) => void;
+  onTypeOverride: (id: string, type: string) => void;
 }
 
-export function TreeNode({ node, level = 0, onToggleOptional, onRename }: TreeNodeProps) {
+export function TreeNode({ node, level = 0, onToggleOptional, onRename, onTypeOverride }: TreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(node.key);
@@ -56,13 +57,52 @@ export function TreeNode({ node, level = 0, onToggleOptional, onRename }: TreeNo
     }
   };
 
+  const [isEditingType, setIsEditingType] = useState(false);
+  const [customTypeMode, setCustomTypeMode] = useState(false);
+  const [typeEditValue, setTypeEditValue] = useState(node.typeOverride || node.type);
+  const typeInputRef = useRef<HTMLInputElement>(null);
+  const typeSelectRef = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    if (isEditingType) {
+      if (customTypeMode && typeInputRef.current) {
+        typeInputRef.current.focus();
+      } else if (!customTypeMode && typeSelectRef.current) {
+        typeSelectRef.current.focus();
+      }
+    }
+  }, [isEditingType, customTypeMode]);
+
+  const handleTypeSubmit = () => {
+    if (typeEditValue && typeEditValue !== node.type) {
+      onTypeOverride(node.id, typeEditValue);
+    } else if (typeEditValue === node.type) {
+      onTypeOverride(node.id, "");
+    }
+    setIsEditingType(false);
+    setCustomTypeMode(false);
+  };
+
+  const handleTypeKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleTypeSubmit();
+    if (e.key === "Escape") {
+      setIsEditingType(false);
+      setCustomTypeMode(false);
+      setTypeEditValue(node.typeOverride || node.type);
+    }
+  };
+
+  const commonTypes = ["string", "number", "boolean", "Date", "any", "null", "undefined"];
+
   return (
     <div className="select-none">
       <div 
         className="group flex items-center gap-1.5 py-1 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded cursor-pointer text-sm"
         style={{ paddingLeft: `${level * 16 + 8}px` }}
-        onClick={() => { if (!isEditing) setIsExpanded(!isExpanded); }}
+        onClick={() => { if (!isEditing && !isEditingType) setIsExpanded(!isExpanded); }}
       >
+        {/* ... (Chevron, Checkbox, Icon, Key Edit) ... */}
+        
         <span 
           className="flex items-center justify-center w-4 h-4 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
           onClick={hasChildren ? toggleExpand : undefined}
@@ -112,8 +152,55 @@ export function TreeNode({ node, level = 0, onToggleOptional, onRename }: TreeNo
           </span>
         )}
         
-        <span className="text-xs text-zinc-400 ml-1">
-          {node.type}
+        <span className="text-xs text-zinc-400 ml-1 flex items-center gap-1">
+          {isEditingType ? (
+            customTypeMode ? (
+              <input
+                ref={typeInputRef}
+                value={typeEditValue}
+                onChange={(e) => setTypeEditValue(e.target.value)}
+                onBlur={handleTypeSubmit}
+                onKeyDown={handleTypeKeyDown}
+                onClick={(e) => e.stopPropagation()}
+                className="h-5 px-1 w-[80px] bg-white dark:bg-zinc-900 border border-purple-500 rounded text-xs focus:outline-none"
+                placeholder="Type..."
+              />
+            ) : (
+              <select
+                ref={typeSelectRef}
+                value={commonTypes.includes(typeEditValue) ? typeEditValue : "custom"}
+                onChange={(e) => {
+                  if (e.target.value === "custom") {
+                    setCustomTypeMode(true);
+                    setTypeEditValue("");
+                  } else {
+                    setTypeEditValue(e.target.value);
+                    // Immediate submit for select
+                    onTypeOverride(node.id, e.target.value);
+                    setIsEditingType(false);
+                  }
+                }}
+                onBlur={() => setIsEditingType(false)}
+                onClick={(e) => e.stopPropagation()}
+                className="h-5 px-1 bg-white dark:bg-zinc-900 border border-purple-500 rounded text-xs focus:outline-none"
+              >
+                {commonTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                <option value="custom">Custom...</option>
+              </select>
+            )
+          ) : (
+            <span 
+              className={`${node.typeOverride ? "text-purple-600 dark:text-purple-400 font-medium" : ""} cursor-pointer hover:text-zinc-600 dark:hover:text-zinc-200 hover:underline`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditingType(true);
+                setTypeEditValue(node.typeOverride || node.type);
+              }}
+              title="Click to change type"
+            >
+              {node.typeOverride || node.type}
+            </span>
+          )}
         </span>
 
         {node.value !== undefined && (
@@ -132,6 +219,7 @@ export function TreeNode({ node, level = 0, onToggleOptional, onRename }: TreeNo
               level={level + 1} 
               onToggleOptional={onToggleOptional}
               onRename={onRename}
+              onTypeOverride={onTypeOverride}
             />
           ))}
         </div>

@@ -8,9 +8,10 @@ interface TreeViewSectionProps {
   rootNode: SchemaNode | null;
   onToggleOptional: (id: string) => void;
   onRename: (id: string, newName: string) => void;
+  onTypeOverride: (id: string, type: string) => void;
 }
 
-export function TreeViewSection({ rootNode, onToggleOptional, onRename }: TreeViewSectionProps) {
+export function TreeViewSection({ rootNode, onToggleOptional, onRename, onTypeOverride }: TreeViewSectionProps) {
   return (
     <section className="flex flex-1 min-w-[300px] flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black">
       <div className="flex h-10 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-4 bg-zinc-50 dark:bg-zinc-900">
@@ -26,6 +27,7 @@ export function TreeViewSection({ rootNode, onToggleOptional, onRename }: TreeVi
             node={rootNode} 
             onToggleOptional={onToggleOptional}
             onRename={onRename}
+            onTypeOverride={onTypeOverride}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-zinc-400">

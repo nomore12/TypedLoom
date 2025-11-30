@@ -1,6 +1,8 @@
 import { SchemaNode } from "./jsonParser";
 
 export function generateZodSchema(node: SchemaNode, level = 0): string {
+  if (node.typeOverride) return `z.custom<${node.typeOverride}>()`;
+
   const indent = "  ".repeat(level);
   const nextIndent = "  ".repeat(level + 1);
 
@@ -77,19 +79,48 @@ export function ${hookName}() {
 }`;
 }
 
-export function generateReactHookForm(rootName: string): string {
+export function generateReactHookForm(node: SchemaNode, rootName: string): string {
   const hookName = `use${rootName}Form`;
   
   return `import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ${rootName}Schema } from "./schemas"; // Assuming schema is exported
 import { ${rootName} } from "./types";
 
 export function ${hookName}() {
   return useForm<${rootName}>({
-    resolver: zodResolver(${rootName}Schema),
+    defaultValues: ${generateDefaultValues(node)},
   });
 }`;
+}
+
+function generateDefaultValues(node: SchemaNode, level = 2): string {
+  const indent = "  ".repeat(level);
+  const nextIndent = "  ".repeat(level + 1);
+
+  switch (node.type) {
+    case "object":
+      if (!node.children || node.children.length === 0) return "{}";
+      const props = node.children.map(child => {
+        const key = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(child.key) ? child.key : `"${child.key}"`;
+        return `${nextIndent}${key}: ${generateDefaultValues(child, level + 1)},`;
+      });
+      return `{\n${props.join("\n")}\n${indent}}`;
+
+    case "array":
+      if (!node.children || node.children.length === 0) return "[]";
+      const items = node.children.map(child => generateDefaultValues(child, level + 1));
+      return `[\n${items.map(item => `${nextIndent}${item},`).join("\n")}\n${indent}]`;
+
+    case "string":
+      return node.value !== undefined ? JSON.stringify(node.value) : '""';
+    case "number":
+      return node.value !== undefined ? String(node.value) : "0";
+    case "boolean":
+      return node.value !== undefined ? String(node.value) : "false";
+    case "null":
+      return "null";
+    default:
+      return "null";
+  }
 }
 
 export function generateTypeScript(node: SchemaNode, rootName: string = "Root"): string {
@@ -97,6 +128,8 @@ export function generateTypeScript(node: SchemaNode, rootName: string = "Root"):
 }
 
 function generateTypeDefinition(node: SchemaNode, level = 1): string {
+  if (node.typeOverride) return node.typeOverride;
+
   const indent = "  ".repeat(level);
   
   switch (node.type) {
