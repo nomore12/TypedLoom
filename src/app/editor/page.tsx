@@ -12,7 +12,6 @@ import { parseJsonToSchema, applyModifications, SchemaModifications } from "@/li
 export default function EditorPage() {
   const [jsonInput, setJsonInput] = useState("");
   const [tsOutput, setTsOutput] = useState("");
-  const [isConverting, setIsConverting] = useState(false);
   const [modifications, setModifications] = useState<SchemaModifications>({});
 
   // Derived state for Tree View and Generators
@@ -55,15 +54,12 @@ export default function EditorPage() {
       }
 
       try {
-        setIsConverting(true);
         // Basic validation
         JSON.parse(json); 
         const ts = await jsonToTs(json, "Root");
         setTsOutput(ts);
       } catch {
         // Ignore parse errors during typing
-      } finally {
-        setIsConverting(false);
       }
     }, 500);
 
@@ -92,7 +88,6 @@ export default function EditorPage() {
         {/* Right: Output (TypeScript, Zod, etc.) */}
         <OutputSection 
           tsOutput={tsOutput} 
-          isConverting={isConverting} 
           rootNode={rootNode}
         />
       </main>
