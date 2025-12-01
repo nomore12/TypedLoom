@@ -7,7 +7,8 @@ import { TreeViewSection } from "@/components/editor/TreeViewSection";
 import { OutputSection } from "@/components/editor/OutputSection";
 import { EditorFooter } from "@/components/editor/EditorFooter";
 import { jsonToTs } from "@/lib/converter";
-import { parseJsonToSchema, applyModifications, SchemaModifications } from "@/lib/jsonParser";
+import { parseJsonToSchema, applyModifications, SchemaModifications, JsonValue } from "@/lib/jsonParser";
+import { addNodeToJson, removeNodeFromJson, updateNodeValueInJson } from "@/lib/jsonUpdater";
 
 const DEFAULT_JSON = `{
   "user": {
@@ -131,6 +132,21 @@ export default function EditorPage() {
     return () => clearTimeout(timer);
   };
 
+  const handleAddNode = (path: string, key: string, value: JsonValue) => {
+    const newJson = addNodeToJson(jsonInput, path, key, value);
+    handleJsonChange(newJson);
+  };
+
+  const handleRemoveNode = (path: string) => {
+    const newJson = removeNodeFromJson(jsonInput, path);
+    handleJsonChange(newJson);
+  };
+
+  const handleUpdateNodeValue = (path: string, value: JsonValue) => {
+    const newJson = updateNodeValueInJson(jsonInput, path, value);
+    handleJsonChange(newJson);
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-white dark:bg-black text-zinc-900 dark:text-zinc-100 font-sans selection:bg-blue-100 dark:selection:bg-blue-900">
       <EditorHeader />
@@ -150,6 +166,9 @@ export default function EditorPage() {
           onToggleOptional={handleToggleOptional}
           onRename={handleRename}
           onTypeOverride={handleTypeOverride}
+          onAddNode={handleAddNode}
+          onRemoveNode={handleRemoveNode}
+          onUpdateNodeValue={handleUpdateNodeValue}
         />
 
         {/* Right: Output (TypeScript, Zod, etc.) */}

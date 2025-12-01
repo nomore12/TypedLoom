@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { SchemaNode } from "@/lib/jsonParser";
-import { ChevronRight, ChevronDown, Box, Hash, Type, List, ToggleLeft } from "lucide-react";
+import { SchemaNode, JsonValue } from "@/lib/jsonParser";
+import { ChevronRight, ChevronDown, Box, Hash, Type, List, ToggleLeft, Plus, Trash2 } from "lucide-react";
+
+export type ExpandAction = {
+  type: 'expand' | 'collapse';
+  timestamp: number;
+};
 
 interface TreeNodeProps {
   node: SchemaNode;
@@ -12,6 +17,9 @@ interface TreeNodeProps {
   onTypeOverride: (id: string, type: string) => void;
   collapsedIds: Set<string>;
   onToggleExpand: (id: string) => void;
+  onAddNode: (path: string, key: string, value: JsonValue) => void;
+  onRemoveNode: (path: string) => void;
+  onUpdateNodeValue: (path: string, value: JsonValue) => void;
 }
 
 export function TreeNode({ 
@@ -21,7 +29,10 @@ export function TreeNode({
   onRename, 
   onTypeOverride, 
   collapsedIds,
-  onToggleExpand
+  onToggleExpand,
+  onAddNode,
+  onRemoveNode,
+  onUpdateNodeValue
 }: TreeNodeProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(node.key);
@@ -56,6 +67,47 @@ export function TreeNode({
     }
   };
 
+  const handleAddChild = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // Generate unique key based on max counter
+    const baseKey = "newField";
+    let maxCounter = 0;
+    let hasBaseKey = false;
+    
+    if (node.children) {
+      node.children.forEach(c => {
+        if (c.key === baseKey) {
+          hasBaseKey = true;
+        } else if (c.key.startsWith(`${baseKey}_`)) {
+          const numPart = c.key.substring(baseKey.length + 1);
+          const num = parseInt(numPart, 10);
+          if (!isNaN(num) && num > maxCounter) {
+            maxCounter = num;
+          }
+        }
+      });
+    }
+
+    let newKey = baseKey;
+    if (hasBaseKey || maxCounter > 0) {
+      newKey = `${baseKey}_${maxCounter + 1}`;
+    }
+
+    const newValue = "string"; // Default value
+    onAddNode(node.id, newKey, newValue);
+    
+    // Auto expand if collapsed
+    if (!isExpanded) {
+      onToggleExpand(node.id);
+    }
+  };
+
+  const handleRemove = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onRemoveNode(node.id);
+  };
+
   const getIcon = () => {
     switch (node.type) {
       case "object": return <Box className="h-3 w-3 text-blue-500" />;
@@ -83,14 +135,42 @@ export function TreeNode({
     }
   }, [isEditingType, customTypeMode]);
 
-  const handleTypeSubmit = () => {
-    if (typeEditValue && typeEditValue !== node.type) {
-      onTypeOverride(node.id, typeEditValue);
-    } else if (typeEditValue === node.type) {
-      onTypeOverride(node.id, "");
+  const submitTypeChange = (newType: string) => {
+    // Check if it's a type change that should update the value
+    if (["string", "number", "boolean", "null", "Date", "any", "undefined", "object", "array"].includes(newType)) {
+      let newValue: JsonValue = "";
+      if (newType === "number") newValue = 0;
+      else if (newType === "boolean") newValue = false;
+      else if (newType === "null") newValue = null;
+      else if (newType === "Date") newValue = new Date().toISOString();
+      else if (newType === "any") newValue = null;
+      else if (newType === "undefined") newValue = null;
+      else if (newType === "object") newValue = {};
+      else if (newType === "array") newValue = [];
+      
+      onUpdateNodeValue(node.id, newValue);
+      
+      // For standard JSON primitives (including object/array), we clear override.
+      // For Date, any, undefined, we MUST set override because inferred type won't match.
+      if (["string", "number", "boolean", "null", "object", "array"].includes(newType)) {
+        onTypeOverride(node.id, "");
+      } else {
+        onTypeOverride(node.id, newType);
+      }
+    } else {
+      // For custom types
+      if (newType && newType !== node.type) {
+        onTypeOverride(node.id, newType);
+      } else if (newType === node.type) {
+        onTypeOverride(node.id, "");
+      }
     }
     setIsEditingType(false);
     setCustomTypeMode(false);
+  };
+
+  const handleTypeSubmit = () => {
+    submitTypeChange(typeEditValue);
   };
 
   const handleTypeKeyDown = (e: React.KeyboardEvent) => {
@@ -102,7 +182,7 @@ export function TreeNode({
     }
   };
 
-  const commonTypes = ["string", "number", "boolean", "Date", "any", "null", "undefined"];
+  const commonTypes = ["string", "number", "boolean", "object", "array", "Date", "any", "null", "undefined"];
 
   return (
     <div className="select-none">
@@ -117,8 +197,10 @@ export function TreeNode({
           className="flex items-center justify-center w-4 h-4 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
           onClick={hasChildren ? toggleExpand : undefined}
         >
-          {hasChildren && (
+          {hasChildren ? (
             isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />
+          ) : (
+            <span className="w-3 h-3" />
           )}
         </span>
         
@@ -187,8 +269,7 @@ export function TreeNode({
                     } else {
                       setTypeEditValue(e.target.value);
                       // Immediate submit for select
-                      onTypeOverride(node.id, e.target.value);
-                      setIsEditingType(false);
+                      submitTypeChange(e.target.value);
                     }
                   }}
                   onBlur={() => setIsEditingType(false)}
@@ -226,6 +307,28 @@ export function TreeNode({
             {String(node.value)}
           </span>
         )}
+
+        {/* Action Buttons (Add/Remove) - Always Visible for now */}
+        <div className="ml-auto flex items-center gap-1">
+          {(node.type === "object" || node.type === "array") && (
+            <button
+              onClick={handleAddChild}
+              className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded text-zinc-500 hover:text-blue-500"
+              title="Add Child"
+            >
+              <Plus className="h-3 w-3" />
+            </button>
+          )}
+          {level > 0 && (
+            <button
+              onClick={handleRemove}
+              className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded text-zinc-500 hover:text-red-500"
+              title="Remove Node"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          )}
+        </div>
       </div>
 
       {hasChildren && isExpanded && (
@@ -240,6 +343,9 @@ export function TreeNode({
               onTypeOverride={onTypeOverride}
               collapsedIds={collapsedIds}
               onToggleExpand={onToggleExpand}
+              onAddNode={onAddNode}
+              onRemoveNode={onRemoveNode}
+              onUpdateNodeValue={onUpdateNodeValue}
             />
           ))}
         </div>

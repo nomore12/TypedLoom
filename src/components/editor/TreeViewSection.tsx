@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/common/Button";
-import { SchemaNode } from "@/lib/jsonParser";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { SchemaNode, JsonValue } from "@/lib/jsonParser";
 import { TreeNode } from "./TreeNode";
 
 interface TreeViewSectionProps {
@@ -8,6 +9,9 @@ interface TreeViewSectionProps {
   onToggleOptional: (id: string) => void;
   onRename: (id: string, newName: string) => void;
   onTypeOverride: (id: string, type: string) => void;
+  onAddNode: (path: string, key: string, value: JsonValue) => void;
+  onRemoveNode: (path: string) => void;
+  onUpdateNodeValue: (path: string, value: JsonValue) => void;
 }
 
 const getAllIds = (node: SchemaNode): string[] => {
@@ -20,8 +24,17 @@ const getAllIds = (node: SchemaNode): string[] => {
   return ids;
 };
 
-export function TreeViewSection({ rootNode, onToggleOptional, onRename, onTypeOverride }: TreeViewSectionProps) {
+export function TreeViewSection({ 
+  rootNode, 
+  onToggleOptional, 
+  onRename, 
+  onTypeOverride,
+  onAddNode,
+  onRemoveNode,
+  onUpdateNodeValue
+}: TreeViewSectionProps) {
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+  const [nodeToDelete, setNodeToDelete] = useState<string | null>(null);
 
   const handleExpandAll = () => {
     setCollapsedIds(new Set());
@@ -43,8 +56,26 @@ export function TreeViewSection({ rootNode, onToggleOptional, onRename, onTypeOv
     setCollapsedIds(newCollapsedIds);
   };
 
+  const handleRequestDelete = (id: string) => {
+    setNodeToDelete(id);
+  };
+
+  const handleConfirmDelete = () => {
+    if (nodeToDelete) {
+      onRemoveNode(nodeToDelete);
+      setNodeToDelete(null);
+    }
+  };
+
   return (
-    <section className="flex flex-1 min-w-[300px] flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black">
+    <section className="flex flex-1 min-w-[300px] flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black relative">
+      <ConfirmDialog
+        isOpen={!!nodeToDelete}
+        title="Delete Node"
+        message="Are you sure you want to delete this node? This action cannot be undone."
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setNodeToDelete(null)}
+      />
       <div className="flex h-10 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-4 bg-zinc-50 dark:bg-zinc-900">
         <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Tree View</span>
         <div className="flex gap-2">
@@ -61,10 +92,20 @@ export function TreeViewSection({ rootNode, onToggleOptional, onRename, onTypeOv
             onTypeOverride={onTypeOverride}
             collapsedIds={collapsedIds}
             onToggleExpand={handleToggleExpand}
+            onAddNode={onAddNode}
+            onRemoveNode={handleRequestDelete}
+            onUpdateNodeValue={onUpdateNodeValue}
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-zinc-400">
-            Invalid JSON
+          <div className="flex h-full flex-col items-center justify-center gap-4 text-sm text-zinc-400">
+            <p>No JSON Data</p>
+            <Button 
+              onClick={() => onAddNode("root", "root", {})}
+              variant="primary"
+              size="sm"
+            >
+              Create Root Object
+            </Button>
           </div>
         )}
       </div>
