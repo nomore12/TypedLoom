@@ -1,6 +1,6 @@
 "use client";
 
-import CodeMirror from "@uiw/react-codemirror";
+import { CodeEditor } from "@/components/common/CodeEditor";
 import { javascript } from "@codemirror/lang-javascript";
 import { vscodeDark } from "@uiw/codemirror-theme-vscode";
 import { useMemo, useState } from "react";
@@ -66,7 +66,7 @@ export function OutputSection({ tsOutput, rootNode }: OutputSectionProps) {
         className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-4"
       />
       <div className="flex-1 overflow-hidden relative group">
-        <CodeMirror
+        <CodeEditor
           value={tabContent[activeTab]}
           height="100%"
           extensions={[javascript({ typescript: true })]}

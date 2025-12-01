@@ -1,4 +1,4 @@
-import CodeMirror from "@uiw/react-codemirror";
+import { CodeEditor } from "@/components/common/CodeEditor";
 import { json } from "@codemirror/lang-json";
 import { vscodeDark } from "@uiw/codemirror-theme-vscode";
 import { Button } from "@/components/common/Button";
@@ -28,7 +28,7 @@ export function JsonInputSection({ value, onChange, error }: JsonInputSectionPro
         </div>
       </div>
       <div className="flex-1 overflow-hidden relative">
-        <CodeMirror
+        <CodeEditor
           value={value}
           height="100%"
           extensions={[json(), EditorView.lineWrapping]}
