@@ -153,53 +153,61 @@ export function TreeNode({ node, level = 0, onToggleOptional, onRename, onTypeOv
         )}
         
         <span className="text-xs text-zinc-400 ml-1 flex items-center gap-1">
-          {isEditingType ? (
-            customTypeMode ? (
-              <input
-                ref={typeInputRef}
-                value={typeEditValue}
-                onChange={(e) => setTypeEditValue(e.target.value)}
-                onBlur={handleTypeSubmit}
-                onKeyDown={handleTypeKeyDown}
-                onClick={(e) => e.stopPropagation()}
-                className="h-5 px-1 w-[80px] bg-white dark:bg-zinc-900 border border-purple-500 rounded text-xs focus:outline-none"
-                placeholder="Type..."
-              />
+          {level > 0 && (
+            isEditingType ? (
+              customTypeMode ? (
+                <input
+                  ref={typeInputRef}
+                  value={typeEditValue}
+                  onChange={(e) => setTypeEditValue(e.target.value)}
+                  onBlur={handleTypeSubmit}
+                  onKeyDown={handleTypeKeyDown}
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-5 px-1 w-[80px] bg-white dark:bg-zinc-900 border border-purple-500 rounded text-xs focus:outline-none"
+                  placeholder="Type..."
+                />
+              ) : (
+                <select
+                  ref={typeSelectRef}
+                  value={commonTypes.includes(typeEditValue) ? typeEditValue : "custom"}
+                  onChange={(e) => {
+                    if (e.target.value === "custom") {
+                      setCustomTypeMode(true);
+                      setTypeEditValue("");
+                    } else {
+                      setTypeEditValue(e.target.value);
+                      // Immediate submit for select
+                      onTypeOverride(node.id, e.target.value);
+                      setIsEditingType(false);
+                    }
+                  }}
+                  onBlur={() => setIsEditingType(false)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-5 px-1 bg-white dark:bg-zinc-900 border border-purple-500 rounded text-xs focus:outline-none"
+                >
+                  {commonTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                  <option value="custom">Custom...</option>
+                </select>
+              )
             ) : (
-              <select
-                ref={typeSelectRef}
-                value={commonTypes.includes(typeEditValue) ? typeEditValue : "custom"}
-                onChange={(e) => {
-                  if (e.target.value === "custom") {
-                    setCustomTypeMode(true);
-                    setTypeEditValue("");
-                  } else {
-                    setTypeEditValue(e.target.value);
-                    // Immediate submit for select
-                    onTypeOverride(node.id, e.target.value);
-                    setIsEditingType(false);
+              <span 
+                className={`
+                  px-1.5 py-0.5 rounded text-[10px] font-medium border transition-colors
+                  ${node.typeOverride 
+                    ? "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/40" 
+                    : "bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-300"
                   }
+                `}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditingType(true);
+                  setTypeEditValue(node.typeOverride || node.type);
                 }}
-                onBlur={() => setIsEditingType(false)}
-                onClick={(e) => e.stopPropagation()}
-                className="h-5 px-1 bg-white dark:bg-zinc-900 border border-purple-500 rounded text-xs focus:outline-none"
+                title="Click to change type"
               >
-                {commonTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                <option value="custom">Custom...</option>
-              </select>
+                {node.typeOverride || node.type}
+              </span>
             )
-          ) : (
-            <span 
-              className={`${node.typeOverride ? "text-purple-600 dark:text-purple-400 font-medium" : ""} cursor-pointer hover:text-zinc-600 dark:hover:text-zinc-200 hover:underline`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsEditingType(true);
-                setTypeEditValue(node.typeOverride || node.type);
-              }}
-              title="Click to change type"
-            >
-              {node.typeOverride || node.type}
-            </span>
           )}
         </span>
 

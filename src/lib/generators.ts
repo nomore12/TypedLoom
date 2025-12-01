@@ -123,11 +123,75 @@ function generateDefaultValues(node: SchemaNode, level = 2): string {
   }
 }
 
-export function generateTypeScript(node: SchemaNode, rootName: string = "Root"): string {
-  return `export interface ${rootName} ${generateTypeDefinition(node)}`;
+export function generateTypeScript(
+  node: SchemaNode, 
+  rootName: string = "Root", 
+  typeDefinition: "interface" | "type" = "interface",
+  separateNested: boolean = false
+): string {
+  if (!separateNested) {
+    if (typeDefinition === "type") {
+      return `export type ${rootName} = ${generateTypeDefinition(node)}`;
+    }
+    return `export interface ${rootName} ${generateTypeDefinition(node)}`;
+  }
+
+  const definitions: string[] = [];
+  
+  function collectDefinitions(currentNode: SchemaNode, currentName: string) {
+    if (currentNode.type === "object") {
+      const children = currentNode.children || [];
+      const props = children.map(child => {
+        const key = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(child.key) ? child.key : `"${child.key}"`;
+        const optional = child.isOptional ? "?" : "";
+        
+        let typeStr = "any";
+        
+        if (child.type === "object" && child.children && child.children.length > 0) {
+          const childTypeName = capitalize(child.key);
+          collectDefinitions(child, childTypeName);
+          typeStr = childTypeName;
+        } else if (child.type === "array" && child.children && child.children.length > 0 && child.children[0].type === "object") {
+           const itemTypeName = capitalize(child.key) + "Item";
+           collectDefinitions(child.children[0], itemTypeName);
+           typeStr = `${itemTypeName}[]`;
+        } else {
+          typeStr = generateTypeDefinition(child, 1, true); // true for inline simple types
+        }
+        
+        return `  ${key}${optional}: ${typeStr};`;
+      });
+
+      const def = typeDefinition === "type"
+        ? `export type ${currentName} = {\n${props.join("\n")}\n}`
+        : `export interface ${currentName} {\n${props.join("\n")}\n}`;
+      
+      definitions.push(def);
+    } else if (currentNode.type === "array" && currentNode.children && currentNode.children.length > 0) {
+       // Root is array
+       const child = currentNode.children[0];
+       if (child.type === "object") {
+          const childName = rootName + "Item";
+          collectDefinitions(child, childName);
+          definitions.push(`export type ${rootName} = ${childName}[];`);
+       } else {
+          definitions.push(`export type ${rootName} = ${generateTypeDefinition(currentNode)};`);
+       }
+    } else {
+       // Root is primitive
+       definitions.push(`export type ${rootName} = ${generateTypeDefinition(currentNode)};`);
+    }
+  }
+
+  collectDefinitions(node, rootName);
+  return definitions.reverse().join("\n\n");
 }
 
-function generateTypeDefinition(node: SchemaNode, level = 1): string {
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function generateTypeDefinition(node: SchemaNode, level = 1, inline = false): string {
   if (node.typeOverride) return node.typeOverride;
 
   const indent = "  ".repeat(level);
@@ -135,17 +199,17 @@ function generateTypeDefinition(node: SchemaNode, level = 1): string {
   switch (node.type) {
     case "object":
       if (!node.children || node.children.length === 0) return "{}";
+      // If inline is true, we still generate nested structure if we are here (meaning it wasn't separated)
       const props = node.children.map(child => {
         const key = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(child.key) ? child.key : `"${child.key}"`;
         const optional = child.isOptional ? "?" : "";
-        return `${indent}${key}${optional}: ${generateTypeDefinition(child, level + 1)};`;
+        return `${indent}${key}${optional}: ${generateTypeDefinition(child, level + 1, inline)};`;
       });
       return `{\n${props.join("\n")}\n${"  ".repeat(level - 1)}}`;
       
     case "array":
       if (node.children && node.children.length > 0) {
-        // Naive approach: use first child's type
-        return `${generateTypeDefinition(node.children[0], level)}[]`;
+        return `${generateTypeDefinition(node.children[0], level, inline)}[]`;
       }
       return "any[]";
       
