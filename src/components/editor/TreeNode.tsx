@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { SchemaNode, JsonValue } from "@/lib/jsonParser";
-import { ChevronRight, ChevronDown, Box, Hash, Type, List, ToggleLeft, Plus, Trash2 } from "lucide-react";
+import { ChevronRight, ChevronDown, Box, Hash, Type, List, ToggleLeft, Plus, Trash2, Calendar, Asterisk, Ban, CircleOff } from "lucide-react";
 
 export type ExpandAction = {
   type: 'expand' | 'collapse';
@@ -109,12 +109,17 @@ export function TreeNode({
   };
 
   const getIcon = () => {
-    switch (node.type) {
+    const effectiveType = node.typeOverride || node.type;
+    switch (effectiveType) {
       case "object": return <Box className="h-3 w-3 text-blue-500" />;
       case "array": return <List className="h-3 w-3 text-orange-500" />;
       case "string": return <Type className="h-3 w-3 text-green-500" />;
       case "number": return <Hash className="h-3 w-3 text-purple-500" />;
       case "boolean": return <ToggleLeft className="h-3 w-3 text-yellow-500" />;
+      case "Date": return <Calendar className="h-3 w-3 text-pink-500" />;
+      case "any": return <Asterisk className="h-3 w-3 text-red-500" />;
+      case "null": return <Ban className="h-3 w-3 text-zinc-400" />;
+      case "undefined": return <CircleOff className="h-3 w-3 text-zinc-400" />;
       default: return <div className="h-3 w-3 rounded-full bg-zinc-400" />;
     }
   };
@@ -187,9 +192,8 @@ export function TreeNode({
   return (
     <div className="select-none">
       <div 
-        className="group flex items-center gap-1.5 py-1 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded cursor-pointer text-sm"
+        className="group flex items-center gap-1.5 py-1 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded text-sm"
         style={{ paddingLeft: `${level * 16 + 8}px` }}
-        onClick={() => { if (!isEditing && !isEditingType && hasChildren) onToggleExpand(node.id); }}
       >
         {/* ... (Chevron, Checkbox, Icon, Key Edit) ... */}
         
