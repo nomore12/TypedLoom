@@ -4,21 +4,33 @@ import { useState, useRef, useEffect } from "react";
 import { SchemaNode } from "@/lib/jsonParser";
 import { ChevronRight, ChevronDown, Box, Hash, Type, List, ToggleLeft } from "lucide-react";
 
+export type ExpandAction = {
+  type: 'expand' | 'collapse';
+  timestamp: number;
+};
+
 interface TreeNodeProps {
   node: SchemaNode;
   level?: number;
   onToggleOptional: (id: string) => void;
   onRename: (id: string, newName: string) => void;
   onTypeOverride: (id: string, type: string) => void;
+  expandAction?: ExpandAction | null;
 }
 
-export function TreeNode({ node, level = 0, onToggleOptional, onRename, onTypeOverride }: TreeNodeProps) {
+export function TreeNode({ node, level = 0, onToggleOptional, onRename, onTypeOverride, expandAction }: TreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(node.key);
   const inputRef = useRef<HTMLInputElement>(null);
   
   const hasChildren = node.children && node.children.length > 0;
+
+  useEffect(() => {
+    if (expandAction) {
+      setIsExpanded(expandAction.type === 'expand');
+    }
+  }, [expandAction]);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -228,6 +240,7 @@ export function TreeNode({ node, level = 0, onToggleOptional, onRename, onTypeOv
               onToggleOptional={onToggleOptional}
               onRename={onRename}
               onTypeOverride={onTypeOverride}
+              expandAction={expandAction}
             />
           ))}
         </div>

@@ -1,8 +1,7 @@
-"use client";
-
+import { useState } from "react";
 import { Button } from "@/components/common/Button";
 import { SchemaNode } from "@/lib/jsonParser";
-import { TreeNode } from "./TreeNode";
+import { TreeNode, ExpandAction } from "./TreeNode";
 
 interface TreeViewSectionProps {
   rootNode: SchemaNode | null;
@@ -12,13 +11,23 @@ interface TreeViewSectionProps {
 }
 
 export function TreeViewSection({ rootNode, onToggleOptional, onRename, onTypeOverride }: TreeViewSectionProps) {
+  const [expandAction, setExpandAction] = useState<ExpandAction | null>(null);
+
+  const handleExpandAll = () => {
+    setExpandAction({ type: "expand", timestamp: Date.now() });
+  };
+
+  const handleCollapseAll = () => {
+    setExpandAction({ type: "collapse", timestamp: Date.now() });
+  };
+
   return (
     <section className="flex flex-1 min-w-[300px] flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black">
       <div className="flex h-10 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-4 bg-zinc-50 dark:bg-zinc-900">
         <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Tree View</span>
         <div className="flex gap-2">
-          <Button variant="ghost" size="xs">Expand All</Button>
-          <Button variant="ghost" size="xs">Collapse All</Button>
+          <Button variant="ghost" size="xs" onClick={handleExpandAll}>Expand All</Button>
+          <Button variant="ghost" size="xs" onClick={handleCollapseAll}>Collapse All</Button>
         </div>
       </div>
       <div className="flex-1 overflow-auto p-2">
@@ -28,6 +37,7 @@ export function TreeViewSection({ rootNode, onToggleOptional, onRename, onTypeOv
             onToggleOptional={onToggleOptional}
             onRename={onRename}
             onTypeOverride={onTypeOverride}
+            expandAction={expandAction}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-zinc-400">
