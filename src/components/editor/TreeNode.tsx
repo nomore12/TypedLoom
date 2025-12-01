@@ -4,33 +4,31 @@ import { useState, useRef, useEffect } from "react";
 import { SchemaNode } from "@/lib/jsonParser";
 import { ChevronRight, ChevronDown, Box, Hash, Type, List, ToggleLeft } from "lucide-react";
 
-export type ExpandAction = {
-  type: 'expand' | 'collapse';
-  timestamp: number;
-};
-
 interface TreeNodeProps {
   node: SchemaNode;
   level?: number;
   onToggleOptional: (id: string) => void;
   onRename: (id: string, newName: string) => void;
   onTypeOverride: (id: string, type: string) => void;
-  expandAction?: ExpandAction | null;
+  collapsedIds: Set<string>;
+  onToggleExpand: (id: string) => void;
 }
 
-export function TreeNode({ node, level = 0, onToggleOptional, onRename, onTypeOverride, expandAction }: TreeNodeProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+export function TreeNode({ 
+  node, 
+  level = 0, 
+  onToggleOptional, 
+  onRename, 
+  onTypeOverride, 
+  collapsedIds,
+  onToggleExpand
+}: TreeNodeProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(node.key);
   const inputRef = useRef<HTMLInputElement>(null);
   
   const hasChildren = node.children && node.children.length > 0;
-
-  useEffect(() => {
-    if (expandAction) {
-      setIsExpanded(expandAction.type === 'expand');
-    }
-  }, [expandAction]);
+  const isExpanded = !collapsedIds.has(node.id);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -40,7 +38,7 @@ export function TreeNode({ node, level = 0, onToggleOptional, onRename, onTypeOv
 
   const toggleExpand = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsExpanded(!isExpanded);
+    onToggleExpand(node.id);
   };
 
   const handleRenameSubmit = () => {
@@ -111,7 +109,7 @@ export function TreeNode({ node, level = 0, onToggleOptional, onRename, onTypeOv
       <div 
         className="group flex items-center gap-1.5 py-1 px-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded cursor-pointer text-sm"
         style={{ paddingLeft: `${level * 16 + 8}px` }}
-        onClick={() => { if (!isEditing && !isEditingType) setIsExpanded(!isExpanded); }}
+        onClick={() => { if (!isEditing && !isEditingType && hasChildren) onToggleExpand(node.id); }}
       >
         {/* ... (Chevron, Checkbox, Icon, Key Edit) ... */}
         
@@ -240,7 +238,8 @@ export function TreeNode({ node, level = 0, onToggleOptional, onRename, onTypeOv
               onToggleOptional={onToggleOptional}
               onRename={onRename}
               onTypeOverride={onTypeOverride}
-              expandAction={expandAction}
+              collapsedIds={collapsedIds}
+              onToggleExpand={onToggleExpand}
             />
           ))}
         </div>

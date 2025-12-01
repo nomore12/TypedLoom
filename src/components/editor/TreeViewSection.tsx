@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/common/Button";
 import { SchemaNode } from "@/lib/jsonParser";
-import { TreeNode, ExpandAction } from "./TreeNode";
+import { TreeNode } from "./TreeNode";
 
 interface TreeViewSectionProps {
   rootNode: SchemaNode | null;
@@ -10,15 +10,37 @@ interface TreeViewSectionProps {
   onTypeOverride: (id: string, type: string) => void;
 }
 
+const getAllIds = (node: SchemaNode): string[] => {
+  let ids = [node.id];
+  if (node.children) {
+    node.children.forEach(child => {
+      ids = ids.concat(getAllIds(child));
+    });
+  }
+  return ids;
+};
+
 export function TreeViewSection({ rootNode, onToggleOptional, onRename, onTypeOverride }: TreeViewSectionProps) {
-  const [expandAction, setExpandAction] = useState<ExpandAction | null>(null);
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
 
   const handleExpandAll = () => {
-    setExpandAction({ type: "expand", timestamp: Date.now() });
+    setCollapsedIds(new Set());
   };
 
   const handleCollapseAll = () => {
-    setExpandAction({ type: "collapse", timestamp: Date.now() });
+    if (rootNode) {
+      setCollapsedIds(new Set(getAllIds(rootNode)));
+    }
+  };
+
+  const handleToggleExpand = (id: string) => {
+    const newCollapsedIds = new Set(collapsedIds);
+    if (newCollapsedIds.has(id)) {
+      newCollapsedIds.delete(id);
+    } else {
+      newCollapsedIds.add(id);
+    }
+    setCollapsedIds(newCollapsedIds);
   };
 
   return (
@@ -37,7 +59,8 @@ export function TreeViewSection({ rootNode, onToggleOptional, onRename, onTypeOv
             onToggleOptional={onToggleOptional}
             onRename={onRename}
             onTypeOverride={onTypeOverride}
-            expandAction={expandAction}
+            collapsedIds={collapsedIds}
+            onToggleExpand={handleToggleExpand}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-zinc-400">
