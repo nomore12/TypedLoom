@@ -1,5 +1,7 @@
 "use client";
 
+import { TypeBuilderPopover } from "./type-builder/TypeBuilderPopover";
+import { TypeSelector } from "./type-builder/TypeSelector";
 import { useState, useRef, useEffect } from "react";
 import { SchemaNode, JsonValue } from "@/lib/jsonParser";
 import { ChevronRight, ChevronDown, Box, Hash, Type, List, ToggleLeft, Plus, Trash2, Calendar, Asterisk, Ban, CircleOff } from "lucide-react";
@@ -40,6 +42,10 @@ export function TreeNode({
   
   const hasChildren = node.children && node.children.length > 0;
   const isExpanded = !collapsedIds.has(node.id);
+
+  const [showTypeBuilder, setShowTypeBuilder] = useState(false);
+  const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
+  const typeBadgeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -124,70 +130,84 @@ export function TreeNode({
     }
   };
 
-  const [isEditingType, setIsEditingType] = useState(false);
-  const [customTypeMode, setCustomTypeMode] = useState(false);
-  const [typeEditValue, setTypeEditValue] = useState(node.typeOverride || node.type);
-  const typeInputRef = useRef<HTMLInputElement>(null);
-  const typeSelectRef = useRef<HTMLSelectElement>(null);
-
-  useEffect(() => {
-    if (isEditingType) {
-      if (customTypeMode && typeInputRef.current) {
-        typeInputRef.current.focus();
-      } else if (!customTypeMode && typeSelectRef.current) {
-        typeSelectRef.current.focus();
-      }
-    }
-  }, [isEditingType, customTypeMode]);
-
   const submitTypeChange = (newType: string) => {
-    // Check if it's a type change that should update the value
-    if (["string", "number", "boolean", "null", "Date", "any", "undefined", "object", "array"].includes(newType)) {
-      let newValue: JsonValue = "";
-      if (newType === "number") newValue = 0;
-      else if (newType === "boolean") newValue = false;
-      else if (newType === "null") newValue = null;
-      else if (newType === "Date") newValue = new Date().toISOString();
-      else if (newType === "any") newValue = null;
-      else if (newType === "undefined") newValue = null;
-      else if (newType === "object") newValue = {};
-      else if (newType === "array") newValue = [];
-      
-      onUpdateNodeValue(node.id, newValue);
-      
-      // For standard JSON primitives (including object/array), we clear override.
-      // For Date, any, undefined, we MUST set override because inferred type won't match.
-      if (["string", "number", "boolean", "null", "object", "array"].includes(newType)) {
-        onTypeOverride(node.id, "");
+    let newValue: JsonValue | undefined = undefined;
+
+    // Helper to get default value for basic types
+    const getBasicDefault = (type: string): JsonValue | undefined => {
+      if (type === "string") return "";
+      if (type === "number") return 0;
+      if (type === "boolean") return false;
+      if (type === "null") return null;
+      if (type === "Date") return new Date().toISOString();
+      if (type === "any") return null;
+      if (type === "undefined") return null;
+      if (type === "object") return {};
+      if (type === "array") return [];
+      return undefined;
+    };
+
+    // 1. Try basic types
+    newValue = getBasicDefault(newType);
+
+    // 2. If not basic, try to parse complex types
+    if (newValue === undefined) {
+      // Check for String Literal: "value" | ...
+      const literalMatch = newType.match(/^"([^"]+)"/);
+      if (literalMatch) {
+        newValue = literalMatch[1];
       } else {
-        onTypeOverride(node.id, newType);
+        // Check for Union: type | ...
+        const firstType = newType.split("|")[0].trim();
+        
+        // Check for Numeric Literal
+        if (!isNaN(Number(firstType)) && firstType !== "") {
+          newValue = Number(firstType);
+        }
+        // Check for Boolean Literal
+        else if (firstType === "true") {
+          newValue = true;
+        } else if (firstType === "false") {
+          newValue = false;
+        }
+        // Fallback to basic default
+        else {
+          newValue = getBasicDefault(firstType);
+        }
       }
+    }
+
+    // Update value if we found a default
+    if (newValue !== undefined) {
+      onUpdateNodeValue(node.id, newValue);
+    }
+
+    // Update type override
+    // Only clear override if it's a standard JSON type that matches the inferred type
+    const standardTypes = ["string", "number", "boolean", "null", "undefined", "object", "array"];
+    if (standardTypes.includes(newType)) {
+      onTypeOverride(node.id, "");
     } else {
-      // For custom types
-      if (newType && newType !== node.type) {
-        onTypeOverride(node.id, newType);
-      } else if (newType === node.type) {
-        onTypeOverride(node.id, "");
-      }
-    }
-    setIsEditingType(false);
-    setCustomTypeMode(false);
-  };
-
-  const handleTypeSubmit = () => {
-    submitTypeChange(typeEditValue);
-  };
-
-  const handleTypeKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleTypeSubmit();
-    if (e.key === "Escape") {
-      setIsEditingType(false);
-      setCustomTypeMode(false);
-      setTypeEditValue(node.typeOverride || node.type);
+      onTypeOverride(node.id, newType);
     }
   };
 
-  const commonTypes = ["string", "number", "boolean", "object", "array", "Date", "any", "null", "undefined"];
+  const handleTypeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (typeBadgeRef.current) {
+      const rect = typeBadgeRef.current.getBoundingClientRect();
+      setPopoverPosition({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+      });
+      setShowTypeBuilder(true);
+    }
+  };
+
+  const handleTypeBuilderApply = (newType: string) => {
+    submitTypeChange(newType);
+    setShowTypeBuilder(false);
+  };
 
   return (
     <div className="select-none">
@@ -250,59 +270,20 @@ export function TreeNode({
         
         <span className="text-xs text-zinc-400 ml-1 flex items-center gap-1">
           {level > 0 && (
-            isEditingType ? (
-              customTypeMode ? (
-                <input
-                  ref={typeInputRef}
-                  value={typeEditValue}
-                  onChange={(e) => setTypeEditValue(e.target.value)}
-                  onBlur={handleTypeSubmit}
-                  onKeyDown={handleTypeKeyDown}
-                  onClick={(e) => e.stopPropagation()}
-                  className="h-5 px-1 w-[80px] bg-white dark:bg-zinc-900 border border-purple-500 rounded text-xs focus:outline-none"
-                  placeholder="Type..."
-                />
-              ) : (
-                <select
-                  ref={typeSelectRef}
-                  value={commonTypes.includes(typeEditValue) ? typeEditValue : "custom"}
-                  onChange={(e) => {
-                    if (e.target.value === "custom") {
-                      setCustomTypeMode(true);
-                      setTypeEditValue("");
-                    } else {
-                      setTypeEditValue(e.target.value);
-                      // Immediate submit for select
-                      submitTypeChange(e.target.value);
-                    }
-                  }}
-                  onBlur={() => setIsEditingType(false)}
-                  onClick={(e) => e.stopPropagation()}
-                  className="h-5 px-1 bg-white dark:bg-zinc-900 border border-purple-500 rounded text-xs focus:outline-none"
-                >
-                  {commonTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                  <option value="custom">Custom...</option>
-                </select>
-              )
-            ) : (
-              <span 
-                className={`
-                  px-1.5 py-0.5 rounded text-[10px] font-medium border transition-colors
-                  ${node.typeOverride 
-                    ? "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/40" 
-                    : "bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-300"
-                  }
-                `}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsEditingType(true);
-                  setTypeEditValue(node.typeOverride || node.type);
-                }}
-                title="Click to change type"
-              >
-                {node.typeOverride || node.type}
-              </span>
-            )
+            <div 
+              ref={typeBadgeRef}
+              className={`
+                px-1.5 py-0.5 rounded text-[10px] font-medium border transition-colors cursor-pointer
+                ${node.typeOverride 
+                  ? "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/40" 
+                  : "bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-300"
+                }
+              `}
+              onClick={handleTypeClick}
+              title="Click to change type"
+            >
+              {node.typeOverride || node.type}
+            </div>
           )}
         </span>
 
@@ -334,6 +315,19 @@ export function TreeNode({
           )}
         </div>
       </div>
+
+      {/* Type Builder Popover */}
+      <TypeBuilderPopover
+        isOpen={showTypeBuilder}
+        onClose={() => setShowTypeBuilder(false)}
+        position={popoverPosition}
+      >
+        <TypeSelector
+          initialType={node.typeOverride || node.type}
+          onApply={handleTypeBuilderApply}
+          onClose={() => setShowTypeBuilder(false)}
+        />
+      </TypeBuilderPopover>
 
       {hasChildren && isExpanded && (
         <div>
