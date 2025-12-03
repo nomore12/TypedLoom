@@ -80,6 +80,7 @@ export function OutputSection({ tsOutput, rootNode }: OutputSectionProps) {
       />
       <div className="flex-1 overflow-hidden relative group">
         <CodeEditor
+          readOnly
           value={tabContent[activeTab]}
           height="100%"
           extensions={[javascript({ typescript: true })]}
