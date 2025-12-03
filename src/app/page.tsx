@@ -12,8 +12,7 @@ export default function LandingPage() {
         </div>
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600 dark:text-zinc-400">
           <a href="#features" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Features</a>
-          <a href="#pricing" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Pricing</a>
-          <a href="https://github.com/nomore12/TypedLoom" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">GitHub</a>
+          <a href="#pricing" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Pricing</a>      
         </nav>
         <div className="flex items-center gap-4">
           <Link href="/login" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
