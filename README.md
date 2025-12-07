@@ -2,7 +2,7 @@
 
 **TypedLoom** is a powerful visual schema builder and code generator for TypeScript and Zod. It helps developers visualize, edit, and generate complex data structures with ease.
 
-![TypedLoom Preview](https://github.com/nomore12/TypedLoom/assets/placeholder.png)
+![TypedLoom Preview](./assets/placeholder.png)
 
 ## ✨ Key Features
 
