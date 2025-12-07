@@ -11,13 +11,13 @@ export default function LandingPage() {
           <span className="text-xl font-bold tracking-tight">TypedLoom</span>
         </div>
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-          <a href="#features" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Features</a>
-          <a href="#pricing" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Pricing</a>      
+          {/* <a href="#features" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Features</a>
+          <a href="#pricing" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Pricing</a>       */}
         </nav>
         <div className="flex items-center gap-4">
-          <Link href="/login" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
+          {/* <Link href="/login" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
             Login
-          </Link>
+          </Link> */}
           <Link
             href="/editor"
             className="rounded-full bg-zinc-900 dark:bg-white px-5 py-2 text-sm font-semibold text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all active:scale-95"
@@ -37,7 +37,7 @@ export default function LandingPage() {
           <div className="container mx-auto px-6 text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 px-3 py-1 text-sm text-zinc-600 dark:text-zinc-400 mb-8 backdrop-blur-sm">
               <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
-              v1.0 Public Beta is live
+              v0.1.0 Public Beta is live
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-bold tracking-tight mb-8 bg-clip-text text-transparent bg-gradient-to-b from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">
@@ -57,12 +57,12 @@ export default function LandingPage() {
                 Start Weaving Free
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
               </Link>
-              <Link
+              {/* <Link
                 href="#demo"
                 className="h-12 px-8 rounded-full border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-semibold flex items-center gap-2 transition-all"
               >
                 View Demo
-              </Link>
+              </Link> */}
             </div>
           </div>
         </section>

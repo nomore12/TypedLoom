@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TypedLoom
 
-## Getting Started
+**TypedLoom** is a powerful visual schema builder and code generator for TypeScript and Zod. It helps developers visualize, edit, and generate complex data structures with ease.
 
-First, run the development server:
+![TypedLoom Preview](https://github.com/nomore12/TypedLoom/assets/placeholder.png)
+
+## ✨ Key Features
+
+- **Visual Schema Builder**: Intuitively design your data structure using a tree view editor. Add, remove, and modify nodes without writing a single line of JSON.
+- **Advanced Type Builder**:
+  - **Union Types**: Easily create complex union types (e.g., `string | number`) via UI.
+  - **String/Numeric Literals**: Manage literal types (e.g., `"active" | "inactive"`, `1 | 2`) with a simple tag-based interface.
+- **Real-time Conversion**: Instantly generate **TypeScript Interfaces** and **Zod Schemas** from your data structure.
+- **Smart JSON Editor**: Full-featured JSON editor with error highlighting and formatting (powered by `jsonrepair`).
+- **Privacy First**: All processing happens **client-side**. Your data never leaves your browser.
+
+## 🛠️ Getting Started
+
+First, install the dependencies:
+
+```bash
+npm install
+# or
+yarn install
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 💻 Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Framework**: Next.js 14 (App Router)
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Editor**: CodeMirror (@uiw/react-codemirror)
+- **Utilities**: quicktype-core, jsonrepair
 
-## Learn More
+## 🤝 Contributing
 
-To learn more about Next.js, take a look at the following resources:
+Contributions are welcome! Please feel free to submit a Pull Request or open an issue on the [Issues](https://github.com/nomore12/TypedLoom/issues) page.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📄 License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is open source and available under the [MIT License](LICENSE).

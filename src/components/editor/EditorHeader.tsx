@@ -13,9 +13,9 @@ export function EditorHeader() {
         </Link>
       </div>
       <div className="flex items-center gap-4">
-        <PlanToggle />
-        <Button variant="outline" size="md">Login</Button>
-        <Button variant="outline" size="md">Sign Up</Button>
+        {/* <PlanToggle /> */}
+        {/* <Button variant="outline" size="md">Login</Button>
+        <Button variant="outline" size="md">Sign Up</Button> */}
       </div>
     </header>
   );
