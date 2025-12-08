@@ -1,50 +1,150 @@
 # TypedLoom
 
-**TypedLoom** is a powerful visual schema builder and code generator for TypeScript and Zod. It helps developers visualize, edit, and generate complex data structures with ease.
+**TypedLoom** is a visual schema builder and code generator for **TypeScript** and **Zod**.  
+Paste JSON, visually refine your schema, and generate type-safe code in seconds.
+
+> 🔗 **Live demo:** https://typed-loom.vercel.app/editor
 
 ![TypedLoom Preview](./assets/placeholder.png)
 
+---
+
 ## ✨ Key Features
 
-- **Visual Schema Builder**: Intuitively design your data structure using a tree view editor. Add, remove, and modify nodes without writing a single line of JSON.
-- **Advanced Type Builder**:
-  - **Union Types**: Easily create complex union types (e.g., `string | number`) via UI.
-  - **String/Numeric Literals**: Manage literal types (e.g., `"active" | "inactive"`, `1 | 2`) with a simple tag-based interface.
-- **Real-time Conversion**: Instantly generate **TypeScript Interfaces** and **Zod Schemas** from your data structure.
-- **Smart JSON Editor**: Full-featured JSON editor with error highlighting and formatting (powered by `jsonrepair`).
-- **Privacy First**: All processing happens **client-side**. Your data never leaves your browser.
+- **Visual JSON & Schema Editor**
+  - Paste existing JSON or start from scratch.
+  - Explore and edit your data structure in a **tree view**.
+  - Rename fields, toggle optional (`?`), and tweak types without hand-editing JSON.
+
+- **Advanced Type Builder**
+  - **Union Types**: Create unions like `string | number` directly from the UI.
+  - **Literal Types**: Manage literal unions such as `"active" | "inactive"` or `1 | 2` with a tag-based interface.
+  - **Type Overrides**: Override inferred types (e.g. `string` → `UserId`) and keep everything in sync.
+
+- **Real-time Code Generation**
+  - Instantly generate:
+    - ✅ **TypeScript interfaces / type aliases**
+    - ✅ **Zod schemas** for runtime validation
+  - Tree view edits are reflected live in the generated code.
+
+- **Smart JSON Editor**
+  - Full-featured JSON editor with:
+    - Syntax highlighting
+    - Error reporting
+    - Auto-formatting & repair (powered by `jsonrepair`)
+  - Works great as a “Paste API response → Fix → Convert” flow.
+
+- **Privacy First**
+  - All processing happens **entirely in your browser**.
+  - No data is sent to any server – ideal for **private or internal API payloads**.
+
+---
+
+## 🔍 Example
+
+Given JSON like this:
+
+    {
+      "id": 1,
+      "name": "Alice",
+      "status": "active",
+      "tags": ["admin", "beta"],
+      "profile": {
+        "email": "alice@example.com",
+        "age": 30
+      }
+    }
+
+TypedLoom lets you:
+
+1. Paste this JSON into the editor.
+2. Use the tree view to:
+   - Rename `profile` → `userProfile`
+   - Mark `age` as optional
+   - Turn `status` into a literal union (`"active" | "inactive" | "banned"`).
+
+…and then generates code like:
+
+    // TypeScript (example)
+
+    export interface User {
+      id: number;
+      name: string;
+      status: "active" | "inactive" | "banned";
+      tags: string[];
+      userProfile?: UserProfile;
+    }
+
+    export interface UserProfile {
+      email: string;
+      age?: number;
+    }
+
+    // Zod schema (example)
+
+    import { z } from "zod";
+
+    export const userProfileSchema = z.object({
+      email: z.string().email(),
+      age: z.number().optional(),
+    });
+
+    export const userSchema = z.object({
+      id: z.number(),
+      name: z.string(),
+      status: z.enum(["active", "inactive", "banned"]),
+      tags: z.array(z.string()),
+      userProfile: userProfileSchema.optional(),
+    });
+
+    export type User = z.infer<typeof userSchema>;
+
+(Exact output may differ depending on your options and overrides.)
+
+---
 
 ## 🛠️ Getting Started
 
-First, install the dependencies:
+Clone the repository and install dependencies:
 
-```bash
-npm install
-# or
-yarn install
-```
+    npm install
+    # or
+    yarn install
 
-Then, run the development server:
+Run the development server:
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+    npm run dev
+    # or
+    yarn dev
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser to use TypedLoom locally.
+
+---
 
 ## 💻 Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide React
-- **Editor**: CodeMirror (@uiw/react-codemirror)
-- **Utilities**: quicktype-core, jsonrepair
+- **Code Editor**: CodeMirror (`@uiw/react-codemirror`)
+- **Utilities**:
+  - [`quicktype-core`](https://github.com/glideapps/quicktype) – type inference & codegen
+  - [`jsonrepair`](https://github.com/josdejong/jsonrepair) – fixing invalid JSON input
+
+---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request or open an issue on the [Issues](https://github.com/nomore12/TypedLoom/issues) page.
+Contributions are welcome!
+
+- Found a bug? Open an issue in [Issues](https://github.com/nomore12/TypedLoom/issues).
+- Want to add a feature or improve the UI?  
+  Fork the repo and submit a Pull Request.
+
+Please include screenshots or small JSON/code examples when reporting issues related to parsing or generation.
+
+---
 
 ## 📄 License
 
